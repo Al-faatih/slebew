@@ -33,6 +33,7 @@ proyek_analisis_data/
     ├── order_items_dataset.csv
     ├── products_dataset.csv
     └── order_payments_dataset.csv
+    
 📌 Fitur Dashboard
 📅 Filter waktu (interaktif)
 💳 Analisis metode pembayaran
@@ -40,6 +41,7 @@ proyek_analisis_data/
 📊 Visualisasi data sederhana & informatif
 💡 Insight bisnis langsung
 🚀 Insight yang Dihasilkan
+
 Metode pembayaran tertentu mendominasi transaksi
 Sebagian kecil seller menyumbang mayoritas penjualan (Pareto)
 Terdapat ketimpangan kontribusi antar seller
