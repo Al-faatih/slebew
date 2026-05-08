@@ -26,9 +26,11 @@ orders['order_purchase_timestamp'] = pd.to_datetime(orders['order_purchase_times
 # ========================
 # MERGE DATA (SAFE JOIN)
 # ========================
+payments_agg = payments.groupby('order_id', as_index=False)['payment_value'].sum()
+
 df = orders.merge(order_items, on='order_id', how='inner')
 df = df.merge(products, on='product_id', how='inner')
-df = df.merge(payments, on='order_id', how='inner')
+df = df.merge(payments_agg, on='order_id', how='inner')
 
 # ========================
 # FILTER DATE
