@@ -44,14 +44,16 @@ http://localhost:8501
 
 proyek_analisis_data/  
 │  
-├── dashboard.py  
-├── requirements.txt  
-│  
-└── data/  
-  ├── orders_dataset.csv  
-  ├── order_items_dataset.csv  
-  ├── products_dataset.csv  
-  └── order_payments_dataset.csv  
+├───dashboard
+| ├───main_data.csv
+| └───dashboard.py
+├───data
+| ├───data_1.csv
+| └───data_2.csv
+├───notebook.ipynb
+├───README.md
+└───requirements.txt
+└───url.txt
 
 ---
 
