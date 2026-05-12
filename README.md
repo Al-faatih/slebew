@@ -44,4 +44,5 @@ conda activate main-ds
 pip install -r requirements.txt
 
 ## ▶️ Menjalankan Dashboard
-streamlit run dashboard.py
+cd submission
+streamlit run dashboard/dashboard.py
