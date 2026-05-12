@@ -1,11 +1,36 @@
 # 📊 Dicoding Collection Dashboard
 
-Dashboard ini dibuat menggunakan **Streamlit** untuk menganalisis data e-commerce dan menjawab beberapa pertanyaan bisnis utama, yaitu:
+Dashboard ini dibuat menggunakan **Streamlit** untuk menganalisis data e-commerce dan menghasilkan insight bisnis dari dataset penjualan.
+
+---
+
+## 🎯 Tujuan Analisis
+
+Dashboard ini bertujuan untuk menjawab beberapa pertanyaan bisnis utama:
 
 - 💳 Metode pembayaran yang paling sering digunakan  
 - 🏪 Seller dengan kontribusi penjualan tertinggi  
+- 📊 Pola distribusi penjualan antar seller  
 
-Dashboard juga dilengkapi dengan **fitur filter interaktif** sehingga pengguna dapat mengeksplorasi data secara dinamis.
+---
+
+## ✨ Fitur Dashboard
+
+- 📅 Filter data interaktif berdasarkan waktu  
+- 💳 Analisis metode pembayaran  
+- 🏪 Analisis top seller berdasarkan penjualan  
+- 📊 Visualisasi data menggunakan grafik  
+- 💡 Insight otomatis dari hasil analisis  
+
+---
+
+## 🛠️ Teknologi yang Digunakan
+
+- Python 3.9  
+- Streamlit  
+- Pandas  
+- Matplotlib  
+- Seaborn  
 
 ---
 
@@ -13,77 +38,10 @@ Dashboard juga dilengkapi dengan **fitur filter interaktif** sehingga pengguna d
 
 ### 🐍 Menggunakan Anaconda
 
-conda create --name main-ds python=3.9  
-conda activate main-ds  
-pip install -r requirements.txt  
-
----
-
-### 💻 Menggunakan Shell / Terminal (Alternatif)
-
-mkdir proyek_analisis_data  
-cd proyek_analisis_data  
-
-pipenv install  
-pipenv shell  
-
-pip install -r requirements.txt  
-
----
+```bash
+conda create --name main-ds python=3.9
+conda activate main-ds
+pip install -r requirements.txt
 
 ## ▶️ Menjalankan Dashboard
-
-streamlit run dashboard.py  
-
-Setelah dijalankan, buka browser di:  
-http://localhost:8501  
-
----
-
-## 📁 Struktur Folder
-
-proyek_analisis_data/  
-│  
-├───dashboard
-| ├───main_data.csv
-| └───dashboard.py
-├───data
-| ├───data_1.csv
-| └───data_2.csv
-├───notebook.ipynb
-├───README.md
-└───requirements.txt
-└───url.txt
-
----
-
-## 📌 Fitur Dashboard
-
-- 📅 Filter waktu interaktif  
-- 💳 Analisis metode pembayaran  
-- 🏪 Analisis top seller  
-- 📊 Visualisasi data sederhana & informatif  
-- 💡 Insight bisnis otomatis  
-
----
-
-## 🚀 Insight yang Dihasilkan
-
-- Metode pembayaran tertentu mendominasi transaksi  
-- Sebagian kecil seller menyumbang mayoritas penjualan  
-- Terdapat ketimpangan kontribusi antar seller dalam ekosistem penjualan  
-
----
-
-## 🛠️ Teknologi yang Digunakan
-
-- Python  
-- Streamlit  
-- Pandas  
-- Matplotlib / Seaborn  
-
----
-
-## 📬 Catatan
-
-Pastikan semua file dataset berada di dalam folder `data/` agar dashboard dapat berjalan dengan baik.
+streamlit run dashboard.py
