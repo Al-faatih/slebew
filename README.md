@@ -1,4 +1,4 @@
-#📊 Dicoding Collection Dashboard
+# 📊 Dicoding Collection Dashboard
 
 Dashboard ini dibuat menggunakan Streamlit untuk menganalisis data e-commerce dan menjawab beberapa pertanyaan bisnis, yaitu:
 
@@ -7,8 +7,8 @@ Dashboard ini dibuat menggunakan Streamlit untuk menganalisis data e-commerce da
 
 Dashboard juga dilengkapi fitur filter interaktif agar pengguna dapat mengeksplorasi data secara dinamis.
 
-⚙️ Setup Environment
-🐍 Menggunakan Anaconda
+## ⚙️ Setup Environment
+## 🐍 Menggunakan Anaconda
 conda create --name main-ds python=3.9
 conda activate main-ds
 pip install -r requirements.txt
@@ -33,7 +33,7 @@ proyek_analisis_data/
     ├── order_items_dataset.csv
     ├── products_dataset.csv
     └── order_payments_dataset.csv
-📌 Fitur Dashboard
+## 📌 Fitur Dashboard
 📅 Filter waktu interaktif
 💳 Analisis metode pembayaran
 🏪 Analisis top seller
