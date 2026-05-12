@@ -6,17 +6,17 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
 # ======================
-# PATH SETUP (SESUAI STRUKTUR KAMU)
+# PATH SETUP (FIXED & PORTABLE)
 # ======================
 BASE_DIR = Path(__file__).resolve().parent
-ROOT_DIR = BASE_DIR.parent  # karena dashboard ada di folder dashboard/
+DATA_DIR = BASE_DIR.parent / "data"
 
 # ======================
 # LOAD DATA FUNCTION
 # ======================
 @st.cache_data
 def load_data(filename):
-    path = ROOT_DIR / filename
+    path = DATA_DIR / filename
 
     if not path.exists():
         st.error(f"❌ File tidak ditemukan: {filename}")
