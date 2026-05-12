@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -6,30 +6,31 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
 # ======================
-# PATH SETUP (PORTABLE)
+# PATH SETUP (SESUAI STRUKTUR KAMU)
 # ======================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
+BASE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BASE_DIR.parent  # karena dashboard ada di folder dashboard/
 
 # ======================
 # LOAD DATA FUNCTION
 # ======================
 @st.cache_data
 def load_data(filename):
-    path = os.path.join(ROOT_DIR, filename)
+    path = ROOT_DIR / filename
 
-    if not os.path.exists(path):
+    if not path.exists():
         st.error(f"❌ File tidak ditemukan: {filename}")
         st.stop()
 
-    if os.stat(path).st_size == 0:
+    if path.stat().st_size == 0:
         st.error(f"❌ File kosong: {filename}")
         st.stop()
 
     return pd.read_csv(path)
 
+
 # ======================
-# LOAD SEMUA DATASET
+# LOAD DATASET
 # ======================
 customers = load_data("customers_dataset.csv")
 orders = load_data("orders_dataset.csv")
@@ -38,6 +39,7 @@ payments = load_data("order_payments_dataset.csv")
 reviews = load_data("order_reviews_dataset.csv")
 products = load_data("products_dataset.csv")
 category = load_data("product_category_name_translation.csv")
+
 
 # ======================
 # PREPROCESSING
@@ -49,6 +51,7 @@ orders['order_purchase_timestamp'] = pd.to_datetime(
 
 orders = orders.dropna(subset=['order_purchase_timestamp'])
 
+
 # ======================
 # MERGE DATA
 # ======================
@@ -58,6 +61,7 @@ df = df.merge(payments, on="order_id", how="left")
 df = df.merge(products, on="product_id", how="left")
 df = df.merge(category, on="product_category_name", how="left")
 df = df.merge(reviews, on="order_id", how="left")
+
 
 # ======================
 # SIDEBAR FILTER
@@ -87,10 +91,12 @@ if df_filtered.empty:
     st.warning("⚠️ Data kosong pada rentang tanggal ini")
     st.stop()
 
+
 # ======================
 # TITLE
 # ======================
 st.title("📊 E-Commerce Data Analysis Dashboard")
+
 
 # ======================
 # METRICS
@@ -103,8 +109,9 @@ col1.metric("Total Orders", df_filtered['order_id'].nunique())
 col2.metric("Total Customers", df_filtered['customer_id'].nunique())
 col3.metric("Total Revenue", f"${df_filtered['payment_value'].sum():,.2f}")
 
+
 # ======================
-# METODE PEMBAYARAN
+# PAYMENT ANALYSIS
 # ======================
 st.subheader("💳 Metode Pembayaran Terpopuler")
 
@@ -114,45 +121,39 @@ fig1, ax1 = plt.subplots()
 payment_counts.plot(kind='bar', ax=ax1)
 ax1.set_title("Distribusi Metode Pembayaran")
 plt.xticks(rotation=30)
-
 st.pyplot(fig1)
+
 
 # ======================
 # TOP SELLER
 # ======================
 st.subheader("🏪 Top Seller")
 
-top_sellers = df_filtered.groupby('seller_id')['price'] \
-    .sum() \
-    .sort_values(ascending=False) \
-    .head(10)
+top_sellers = df_filtered.groupby('seller_id')['price'].sum().sort_values(ascending=False).head(10)
 
 fig2, ax2 = plt.subplots()
 top_sellers.plot(kind='bar', ax=ax2)
 ax2.set_title("Top 10 Seller")
 plt.xticks(rotation=45)
-
 st.pyplot(fig2)
 
+
 # ======================
-# TOP KATEGORI PRODUK
+# TOP CATEGORY
 # ======================
 st.subheader("🏆 Top Kategori Produk")
 
-top_category = df_filtered.groupby('product_category_name_english')['price'] \
-    .sum() \
-    .sort_values(ascending=False) \
-    .head(10)
+top_category = df_filtered.groupby('product_category_name_english')['price'].sum().sort_values(ascending=False).head(10)
 
 fig3, ax3 = plt.subplots()
 top_category.plot(kind='bar', ax=ax3)
 ax3.set_title("Top Kategori Produk")
 plt.xticks(rotation=45)
-
 st.pyplot(fig3)
 
+
 # ======================
-# RATING REVIEW
+# REVIEW SCORE
 # ======================
 st.subheader("⭐ Distribusi Review Score")
 
@@ -162,11 +163,11 @@ fig4, ax4 = plt.subplots()
 review_counts.plot(kind='bar', ax=ax4)
 ax4.set_title("Distribusi Rating")
 plt.xticks(rotation=0)
-
 st.pyplot(fig4)
 
+
 # ======================
-# TREND BULANAN
+# MONTHLY TREND
 # ======================
 st.subheader("📈 Tren Order Bulanan")
 
@@ -178,14 +179,15 @@ fig5, ax5 = plt.subplots()
 monthly_orders.plot(ax=ax5)
 ax5.set_title("Trend Order")
 plt.xticks(rotation=45)
-
 st.pyplot(fig5)
+
 
 # ======================
 # DATA PREVIEW
 # ======================
 st.subheader("📄 Preview Data")
 st.dataframe(df_filtered.head())
+
 
 # ======================
 # INSIGHT
@@ -198,6 +200,7 @@ st.write("""
 - Kategori produk tertentu lebih laris  
 - Mayoritas review berada di rating tinggi  
 """)
+
 
 # ======================
 # RECOMMENDATION
