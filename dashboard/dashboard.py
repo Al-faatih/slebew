@@ -1,110 +1,110 @@
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
 import os
+import pandas as pd
+import streamlit as st
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
 # ======================
+# PATH SETUP (PENTING)
+# ======================
+LOCAL_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(LOCAL_DIR, ".."))
 
 # ======================
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-
+# LOAD DATA FUNCTION
 # ======================
-# FUNCTION LOAD DATA 
-# ======================
+@st.cache_data
 def load_data(filename):
-    path = os.path.join(DATA_DIR, filename)
+    path = os.path.join(BASE_DIR, filename)
+
     if not os.path.exists(path):
-        st.error(f" File tidak ditemukan: {filename}")
+        st.error(f"❌ File tidak ditemukan: {filename}")
         st.stop()
+
+    if os.stat(path).st_size == 0:
+        st.error(f"❌ File kosong: {filename}")
+        st.stop()
+
     return pd.read_csv(path)
 
 # ======================
-# LOAD DATA
+# LOAD SEMUA DATA
 # ======================
 orders = load_data("orders_dataset.csv")
 order_items = load_data("order_items_dataset.csv")
 products = load_data("products_dataset.csv")
-product_category = load_data("product_category_name_translation.csv")
-customers = load_data("customers_dataset.csv")
 payments = load_data("order_payments_dataset.csv")
-reviews = load_data("order_reviews_dataset.csv")
+customers = load_data("customers_dataset.csv")
 
 # ======================
-# CLEANING
+# PREPROCESSING
 # ======================
 orders['order_purchase_timestamp'] = pd.to_datetime(
-    orders['order_purchase_timestamp'], errors='coerce'
+    orders['order_purchase_timestamp'],
+    errors='coerce'
 )
 
 # ======================
-# SIDEBAR
+# SIDEBAR FILTER
 # ======================
-st.sidebar.title(" Dashboard Menu")
-menu = st.sidebar.selectbox("Pilih Analisis", [
-    "Overview",
-    "Metode Pembayaran",
-    "Top Seller",
-    "Trend Order"
-])
+st.sidebar.header("Filter Data")
 
-# ======================
-# OVERVIEW
-# ======================
-if menu == "Overview":
-    st.title(" E-Commerce Dashboard")
-    st.write("Analisis data e-commerce 2017–2018")
+min_date = orders['order_purchase_timestamp'].min()
+max_date = orders['order_purchase_timestamp'].max()
 
-    col1, col2, col3 = st.columns(3)
+start_date, end_date = st.sidebar.date_input(
+    "Pilih Rentang Tanggal",
+    [min_date, max_date]
+)
 
-    col1.metric("Total Orders", len(orders))
-    col2.metric("Total Items", len(order_items))
-    col3.metric("Total Customers", len(customers))
+filtered_orders = orders[
+    (orders['order_purchase_timestamp'] >= pd.to_datetime(start_date)) &
+    (orders['order_purchase_timestamp'] <= pd.to_datetime(end_date))
+]
 
 # ======================
-# PAYMENT ANALYSIS
+# TITLE
 # ======================
-elif menu == "Metode Pembayaran":
-    st.title(" Metode Pembayaran")
+st.title("📊 E-Commerce Dashboard")
 
-    df_pay = orders.merge(payments, on='order_id', how='inner')
+# ======================
+# METODE PEMBAYARAN
+# ======================
+st.subheader("💳 Metode Pembayaran Terpopuler")
 
-    payment_count = df_pay['payment_type'].value_counts()
+payment_counts = payments['payment_type'].value_counts()
 
-    fig, ax = plt.subplots()
-    payment_count.plot(kind='bar', ax=ax)
-    ax.set_title("Distribusi Metode Pembayaran")
+fig1, ax1 = plt.subplots()
+payment_counts.plot(kind='bar', ax=ax1)
+ax1.set_title("Distribusi Metode Pembayaran")
+ax1.set_xlabel("Metode")
+ax1.set_ylabel("Jumlah")
 
-    st.pyplot(fig)
-    st.info(f"Metode dominan: {payment_count.idxmax()}")
+st.pyplot(fig1)
 
 # ======================
 # TOP SELLER
 # ======================
-elif menu == "Top Seller":
-    st.title(" Top Seller")
+st.subheader("🏪 Top Seller Berdasarkan Penjualan")
 
-    top_seller = order_items['seller_id'].value_counts().head(10)
+merged_data = order_items.merge(filtered_orders, on='order_id')
 
-    fig, ax = plt.subplots()
-    top_seller.plot(kind='barh', ax=ax)
-    ax.set_title("Top 10 Seller")
+top_sellers = merged_data.groupby('seller_id')['price'] \
+    .sum() \
+    .sort_values(ascending=False) \
+    .head(10)
 
-    st.pyplot(fig)
+fig2, ax2 = plt.subplots()
+top_sellers.plot(kind='bar', ax=ax2)
+ax2.set_title("Top 10 Seller")
+ax2.set_xlabel("Seller ID")
+ax2.set_ylabel("Total Penjualan")
+
+st.pyplot(fig2)
 
 # ======================
-# TREND ORDER
+# DATA PREVIEW
 # ======================
-elif menu == "Trend Order":
-    st.title("📈 Trend Order")
-
-    orders['month'] = orders['order_purchase_timestamp'].dt.to_period('M').astype(str)
-    monthly = orders.groupby('month')['order_id'].count()
-
-    fig, ax = plt.subplots()
-    monthly.plot(ax=ax)
-    ax.set_title("Trend Order per Bulan")
-
-    st.pyplot(fig)
+st.subheader("📄 Preview Data")
+st.dataframe(filtered_orders.head())
