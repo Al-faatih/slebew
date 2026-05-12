@@ -1,4 +1,4 @@
-📊 Dicoding Collection Dashboard
+#📊 Dicoding Collection Dashboard
 
 Dashboard ini dibuat menggunakan Streamlit untuk menganalisis data e-commerce dan menjawab beberapa pertanyaan bisnis, yaitu:
 
