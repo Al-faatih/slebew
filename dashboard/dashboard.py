@@ -3,28 +3,51 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
+# ======================
+# CONFIG
+# ======================
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
 # ======================
-# PATH FIX
+# PATH SETUP (AMAN REVIEWER)
 # ======================
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.parent / "data"
 
 
+# ======================
+# LOAD DATA FUNCTION
+# ======================
 @st.cache_data
-def load(file):
-    return pd.read_csv(DATA_DIR / file)
+def load_data(file):
+    path = DATA_DIR / file
+
+    if not path.exists():
+        st.error(f"❌ File tidak ditemukan: {file}")
+        st.stop()
+
+    return pd.read_csv(path)
 
 
 # ======================
-# LOAD DATA
+# LOAD 3 DATASET SAJA
 # ======================
-orders = load("orders_dataset.csv")[["order_id", "order_purchase_timestamp"]]
-items = load("order_items_dataset.csv")[["order_id", "price", "seller_id"]]
-payments = load("order_payments_dataset.csv")[["order_id", "payment_value", "payment_type"]]
-reviews = load("order_reviews_dataset.csv")[["order_id", "review_score"]]
-products = load("products_dataset.csv")[["product_id", "product_category_name"]]
+orders = load_data("orders_dataset.csv")[[
+    "order_id",
+    "order_purchase_timestamp"
+]]
+
+payments = load_data("order_payments_dataset.csv")[[
+    "order_id",
+    "payment_type",
+    "payment_value"
+]]
+
+order_items = load_data("order_items_dataset.csv")[[
+    "order_id",
+    "seller_id",
+    "price"
+]]
 
 
 # ======================
@@ -39,109 +62,104 @@ orders = orders.dropna(subset=["order_purchase_timestamp"])
 
 
 # ======================
-# FILTER (SEBELUM MERGE = WAJIB)
+# FILTER DATA (2017–2018)
 # ======================
-st.sidebar.header("Filter")
+st.sidebar.header("📌 Filter Data")
 
 min_date = orders["order_purchase_timestamp"].min()
 max_date = orders["order_purchase_timestamp"].max()
 
 date_range = st.sidebar.date_input(
-    "Tanggal",
+    "Pilih Rentang Tanggal",
     value=[min_date, max_date]
 )
 
 if len(date_range) != 2:
+    st.warning("Pilih rentang tanggal dengan benar")
     st.stop()
 
-start, end = date_range
+start_date, end_date = date_range
 
-orders = orders[
-    (orders["order_purchase_timestamp"] >= pd.to_datetime(start)) &
-    (orders["order_purchase_timestamp"] <= pd.to_datetime(end))
+orders_filtered = orders[
+    (orders["order_purchase_timestamp"] >= pd.to_datetime(start_date)) &
+    (orders["order_purchase_timestamp"] <= pd.to_datetime(end_date))
 ]
 
 
 # ======================
-# AGGREGASI (INI KUNCI HEMAT MEMORY)
+# PAYMENT ANALYSIS
 # ======================
+payment_df = orders_filtered.merge(payments, on="order_id", how="left")
 
-# Orders + Items (ringkasan)
-items_agg = items.groupby("order_id").agg({
-    "price": "sum",
-    "seller_id": "first"
-}).reset_index()
-
-# Payments (ringkasan)
-pay_agg = payments.groupby("order_id").agg({
-    "payment_value": "sum",
-    "payment_type": "first"
-}).reset_index()
-
-# Reviews (ringkasan)
-rev_agg = reviews.groupby("order_id").agg({
-    "review_score": "mean"
-}).reset_index()
+payment_summary = payment_df.groupby("payment_type")["payment_value"].sum()
 
 
 # ======================
-# MERGE RINGAN SAJA
+# SELLER ANALYSIS
 # ======================
-df = orders.merge(items_agg, on="order_id", how="left")
-df = df.merge(pay_agg, on="order_id", how="left")
-df = df.merge(rev_agg, on="order_id", how="left")
+seller_df = orders_filtered.merge(order_items, on="order_id", how="left")
 
-
-# ======================
-# CLEAN
-# ======================
-df = df.drop_duplicates()
+seller_summary = seller_df.groupby("seller_id")["price"].sum().nlargest(10)
 
 
 # ======================
-# UI
+# TITLE
 # ======================
-st.title("📊 E-Commerce Dashboard (Ultra Light Version)")
-
-
-col1, col2, col3 = st.columns(3)
-
-col1.metric("Orders", df["order_id"].nunique())
-col2.metric("Revenue", df["payment_value"].sum())
-col3.metric("Avg Review", df["review_score"].mean())
+st.title("📊 E-Commerce Dashboard (3 Dataset - Optimized)")
 
 
 # ======================
-# PAYMENT
+# METRICS
 # ======================
-st.subheader("Payment Method")
+col1, col2 = st.columns(2)
 
-payment = df["payment_type"].value_counts()
-
-fig, ax = plt.subplots()
-payment.plot(kind="bar", ax=ax)
-st.pyplot(fig)
+col1.metric("Total Orders", orders_filtered["order_id"].nunique())
+col2.metric("Total Revenue", f"${payment_df['payment_value'].sum():,.2f}")
 
 
 # ======================
-# TOP SELLER
+# PAYMENT CHART
 # ======================
-st.subheader("Top Seller")
+st.subheader("💳 Metode Pembayaran Terpopuler")
 
-seller = df.groupby("seller_id")["price"].sum().nlargest(10)
-
-fig, ax = plt.subplots()
-seller.plot(kind="bar", ax=ax)
-st.pyplot(fig)
+fig1, ax1 = plt.subplots()
+payment_summary.plot(kind="bar", ax=ax1)
+ax1.set_title("Total Payment Value per Method")
+plt.xticks(rotation=30)
+st.pyplot(fig1)
 
 
 # ======================
-# REVIEW
+# SELLER CHART
 # ======================
-st.subheader("Review Score")
+st.subheader("🏪 Top Seller")
 
-review = df["review_score"].value_counts().sort_index()
+fig2, ax2 = plt.subplots()
+seller_summary.plot(kind="bar", ax=ax2)
+ax2.set_title("Top 10 Seller by Revenue")
+plt.xticks(rotation=45)
+st.pyplot(fig2)
 
-fig, ax = plt.subplots()
-review.plot(kind="bar", ax=ax)
-st.pyplot(fig)
+
+# ======================
+# INSIGHT
+# ======================
+st.subheader("💡 Insight")
+
+st.write("""
+- Metode pembayaran tertentu menghasilkan nilai transaksi terbesar  
+- Sebagian kecil seller mendominasi penjualan  
+- Distribusi pendapatan tidak merata antar seller  
+""")
+
+
+# ======================
+# DATA PREVIEW
+# ======================
+st.subheader("📄 Preview Data")
+
+st.write("Payment Data")
+st.dataframe(payment_df.head())
+
+st.write("Seller Data")
+st.dataframe(seller_df.head())
