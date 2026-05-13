@@ -83,26 +83,17 @@ col1.metric("Total Orders", orders_f["order_id"].nunique())
 col2.metric("Total Revenue", payments_f["payment_value"].sum())
 
 
-# ======================
-# PAYMENT CHART
-# ======================
-st.subheader("💳 Payment Method")
+# PAYMENT (lebih hemat)
+payments_f = payments.merge(orders_f, on="order_id", how="inner")[["payment_type", "payment_value"]]
 
-fig1, ax1 = plt.subplots()
-ax1.bar(payment_summary["payment_type"], payment_summary["payment_value"])
-plt.xticks(rotation=30)
-st.pyplot(fig1)
+payment_summary = payments_f.groupby("payment_type").sum().reset_index()
 
 
-# ======================
-# SELLER CHART
-# ======================
-st.subheader("🏪 Top Seller")
+# SELLER (lebih hemat)
+items_f = items.merge(orders_f, on="order_id", how="inner")[["seller_id", "price"]]
 
-fig2, ax2 = plt.subplots()
-ax2.bar(seller_summary["seller_id"], seller_summary["price"])
-plt.xticks(rotation=45)
-st.pyplot(fig2)
+seller_summary = items_f.groupby("seller_id").sum().reset_index()
+seller_summary = seller_summary.nlargest(10, "price")
 
 
 # ======================
