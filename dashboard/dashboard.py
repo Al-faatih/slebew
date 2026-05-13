@@ -37,7 +37,7 @@ orders = orders.dropna()
 
 
 # ======================
-# FILTER 
+# FILTER DULU (INI PENTING)
 # ======================
 st.sidebar.header("Filter")
 
