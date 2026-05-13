@@ -6,24 +6,25 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="E-Commerce Dashboard", layout="wide")
 
 # ======================
-# PATH SETUP
+# PATH SETUP (FIXED)
 # ======================
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
-
+DATA_DIR = BASE_DIR.parent / "data"   # 🔥 INI FIX UTAMA
 
 # ======================
 # LOAD DATA (CACHE)
 # ======================
 @st.cache_data
 def load_data(file):
-    return pd.read_csv(DATA_DIR / file)
-
+    path = DATA_DIR / file
+    if not path.exists():
+        st.error(f"❌ File tidak ditemukan: {file}")
+        st.stop()
+    return pd.read_csv(path)
 
 # ======================
 # LOAD DATASET (ONLY NEEDED COLUMNS)
 # ======================
-
 orders = load_data("orders_dataset.csv")[[
     "order_id",
     "customer_id",
@@ -59,7 +60,6 @@ customers = load_data("customers_dataset.csv")[[
     "customer_id"
 ]]
 
-
 # ======================
 # PREPROCESS
 # ======================
@@ -70,9 +70,8 @@ orders["order_purchase_timestamp"] = pd.to_datetime(
 
 orders = orders.dropna(subset=["order_purchase_timestamp"])
 
-
 # ======================
-# SIDEBAR FILTER (FILTER DULU = HEMAT RAM)
+# SIDEBAR FILTER (PAKAI ORDERS DULU BIAR RINGAN)
 # ======================
 st.sidebar.header("📌 Filter Data")
 
@@ -85,7 +84,6 @@ date_range = st.sidebar.date_input(
 )
 
 if len(date_range) != 2:
-    st.warning("⚠️ Pilih rentang tanggal")
     st.stop()
 
 start_date, end_date = date_range
@@ -95,9 +93,8 @@ orders = orders[
     (orders["order_purchase_timestamp"] <= pd.to_datetime(end_date))
 ]
 
-
 # ======================
-# MERGE (SETELAH FILTER)
+# MERGE (SETELAH FILTER → HEMAT MEMORY)
 # ======================
 df = orders.merge(order_items, on="order_id", how="left")
 df = df.merge(payments, on="order_id", how="left")
@@ -105,18 +102,12 @@ df = df.merge(products, on="product_id", how="left")
 df = df.merge(category, on="product_category_name", how="left")
 df = df.merge(reviews, on="order_id", how="left")
 
-
-# ======================
-# CLEAN DATA
-# ======================
 df = df.drop_duplicates()
-
 
 # ======================
 # TITLE
 # ======================
-st.title("📊 E-Commerce Dashboard (Optimized & Safe)")
-
+st.title("📊 E-Commerce Dashboard (Fix Final)")
 
 # ======================
 # METRICS
@@ -126,7 +117,6 @@ col1, col2, col3 = st.columns(3)
 col1.metric("Total Orders", df["order_id"].nunique())
 col2.metric("Total Customers", df["customer_id"].nunique())
 col3.metric("Total Revenue", f"${df['payment_value'].sum():,.2f}")
-
 
 # ======================
 # PAYMENT ANALYSIS
@@ -141,7 +131,6 @@ ax1.set_title("Payment Method")
 plt.xticks(rotation=30)
 st.pyplot(fig1)
 
-
 # ======================
 # TOP SELLER
 # ======================
@@ -154,7 +143,6 @@ top_seller.plot(kind="bar", ax=ax2)
 ax2.set_title("Top Seller")
 plt.xticks(rotation=45)
 st.pyplot(fig2)
-
 
 # ======================
 # TOP CATEGORY
@@ -169,7 +157,6 @@ ax3.set_title("Top Category")
 plt.xticks(rotation=45)
 st.pyplot(fig3)
 
-
 # ======================
 # REVIEW SCORE
 # ======================
@@ -182,7 +169,6 @@ review.plot(kind="bar", ax=ax4)
 ax4.set_title("Review Score Distribution")
 plt.xticks(rotation=0)
 st.pyplot(fig4)
-
 
 # ======================
 # MONTHLY TREND
@@ -199,13 +185,11 @@ ax5.set_title("Monthly Orders")
 plt.xticks(rotation=45)
 st.pyplot(fig5)
 
-
 # ======================
 # DATA PREVIEW
 # ======================
 st.subheader("📄 Preview Data")
 st.dataframe(df.head())
-
 
 # ======================
 # INSIGHT
@@ -218,7 +202,6 @@ st.write("""
 - Kategori produk tertentu paling laris  
 - Review cenderung tinggi  
 """)
-
 
 # ======================
 # RECOMMENDATION
